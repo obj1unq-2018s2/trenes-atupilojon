@@ -9,6 +9,8 @@ class Deposito {
 	method agregarLocomotora(unaLocomotora) = locomotoras.add(unaLocomotora)
 	
 	method agregarFormacion(unaFormacion) = formaciones.add(unaFormacion)
+		
+	method quitarUnaLocomotora (unaLocomotora) = locomotoras.remove(unaLocomotora)
 	
 	method vagonesMasPesados() {
 		return formaciones.map { formacion => formacion.vagonMasPesado() }.asSet()
@@ -27,14 +29,15 @@ class Deposito {
 				}
 			if ( not  locomotorasValidas.isEmpty() ) {
 				unaFormacion.agregarUnaLocomotora ( locomotorasValidas.first()	)
+				self.quitarUnaLocomotora ( locomotorasValidas.first() )
 			}
 		}
-		
+	
 	}
 	
 }
 
-// FORMACIONES
+// FORMACION
 
 class Formacion {
 	
@@ -83,12 +86,62 @@ class Formacion {
 	
 }
 
-// VAGONES
+class FormacionCortaDistancia inherits Formacion {
+
+	
+	method estaBienArmada() {
+		return self.puedeMoverse() and not self.esCompleja()
+	}
+	
+	method velocidadLimite() {
+		return 60.min( self.velocidadMaxima() )
+	}
+	
+}
+
+class FormacionLargaDistancia inherits Formacion {
+	
+	var uneCiudadesGrandes = false
+		
+	method estaBienArmada() {
+		return self.puedeMoverse() and vagones.all { vagon =>
+			vagon.tieneSuficientesBaniosPorPasajero()
+		}
+	}
+	
+	method unirCiudadesGrandes() {
+		uneCiudadesGrandes = true
+	}
+	
+	method velocidadLimite() {
+		var velocidadMaxima
+		if ( uneCiudadesGrandes ) {
+			velocidadMaxima = 200.min( self.velocidadMaxima() )
+		}
+		else {
+			velocidadMaxima = 150.min( self.velocidadMaxima() )
+		}
+		return velocidadMaxima
+	}	
+	
+}
+
+class FormacionAltaVelocidad inherits FormacionLargaDistancia {
+	
+	override method estaBienArmada() {
+		return self.velocidadMaxima() > 250 and vagones.all {
+			vagon => vagon.peso() < 2500
+		}
+	}
+}	
+
+// VAGON
 
 class VagonPasajeros {
 	
 	const ancho = null
 	const largo = null
+	const banios = null
 	
 	method capacidadPasajeros() {
 		var pasajeros = 0
@@ -100,6 +153,10 @@ class VagonPasajeros {
 	method peso() = self.capacidadPasajeros() * 80
 	method carga() = 0
 	
+	method tieneSuficientesBaniosPorPasajero() {
+		return banios >= self.capacidadPasajeros() / 50
+	}
+	
 }
 
 class VagonCarga {
@@ -109,6 +166,7 @@ class VagonCarga {
 	method capacidadPasajeros() = 0
 	method peso() = carga + 160
 	method carga() = carga
+	method tieneSuficientesBaniosPorPasajero() = true
 	
 }
 

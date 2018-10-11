@@ -5,28 +5,49 @@ describe "Trenes Test" {
 	
 	var vagonCarga1 = new VagonCarga( carga = 2000 )  // Liviano 2160
 	var vagonCarga2 = new VagonCarga( carga = 3000 )  //         3160
-	
-	var vagonPasajeros1 = new VagonPasajeros ( ancho = 2, largo = 4 ) //  8*4*80=2560
-	var vagonPasajeros2 = new VagonPasajeros ( ancho = 3, largo = 8 ) //  10*8*80=6400
+	var vagonCarga3 = new VagonCarga( carga = 2100 )  // Liviano 2260
+	var vagonCarga4 = new VagonCarga( carga = 8000 )  //         8160
+		
+	var vagonPasajeros1 = new VagonPasajeros ( ancho = 2, largo = 4, banios = 1 ) //  8*4*(32)80=2560
+	var vagonPasajeros2 = new VagonPasajeros ( ancho = 3, largo = 8, banios = 2 ) //  10*8(80)*80=6400
+	var vagonPasajeros3 = new VagonPasajeros ( ancho = 2, largo = 2, banios = 1 ) //  8*2(16)*80=1280
+	var vagonPasajeros4 = new VagonPasajeros ( ancho = 3, largo = 4, banios = 0 ) //  10*4(40)*80=3200
 	
 	var locomotora1 = new Locomotora ( peso = 1000, arrastre = 10000, velocidad = 70 )	// 9000
 	var locomotora2 = new Locomotora ( peso = 500, arrastre = 7500, velocidad = 90 )	// 7000
+	var locomotora3 = new Locomotora ( peso = 1500, arrastre = 15000, velocidad = 80 )	// 14000
+    var locomotora4 = new Locomotora ( peso = 2000, arrastre = 22000, velocidad = 180 )	// 20000
 
-	var formacion1 = new Formacion ( 
+	var formacion1 = new FormacionCortaDistancia ( 
 		locomotoras = [locomotora1],
 		vagones = [vagonCarga1,vagonCarga2,vagonPasajeros1,vagonPasajeros2]
 	)
+		
+	var formacion2 = new FormacionCortaDistancia ( 
+		locomotoras = [locomotora3],
+		vagones = [vagonCarga3]
+	)
+
+	var formacion3 = new FormacionLargaDistancia ( 
+		locomotoras = [locomotora3],
+		vagones = [vagonCarga3]
+	)
 	
+	var formacion4 = new FormacionLargaDistancia ( 
+		locomotoras = [locomotora4],
+		vagones = [vagonCarga4, vagonPasajeros4]
+	)
+		
 	var deposito1 = new Deposito( formaciones = [formacion1] )
 	
-	// PARA TEST DE PUNTO 7
+	// PARA TEST DE PUNTO 7 - AGREGA 19 VAGONES A UNA FORMACION
 	method agregarUnaBandaDeVecesUnVagon(unVagon, unaFormacion) {
 		var veces = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]	
 		veces.forEach { a => unaFormacion.agregarUnVagon(unVagon)}
 	}
 	
 	
-	test "1) hay un vagon livianos en la formacion1" {
+	test "1) vagonCarga1 es el unico vagon liviano en la formacion1" {
 		
 		assert.equals( formacion1.vagonesLivianos(), 1 )
 		
@@ -34,33 +55,33 @@ describe "Trenes Test" {
 	
 	test "1) agrego un vagon liviano a formacion1 y ahora hay dos vagones livianos en formacion1" {
 		
-		var vagonCarga3 = new VagonCarga( carga = 2100 )  // Liviano 2260
-		
 		formacion1.agregarUnVagon ( vagonCarga3 )
 		assert.equals( formacion1.vagonesLivianos(), 2 )
 		
 	}
 
-	test "2) verifico velocidad maxima de formacion1 de 70" {
+	test "2) verifico velocidad maxima de formacion1 de 70km/h dado por locomotora1" {
 		
 		assert.equals ( formacion1.velocidadMaxima(), 70 )
 			
 	}
 		
-	test "2) agrego locomotora2 a la formacion1 y verifico velocidad maxima de 70" {
+	test "2) agrego locomotora2 a la formacion1 que tiene una velocidad maxima de 90km/h
+			 y verifico velocidad maxima de 70km/h" {
 		
 		formacion1.agregarUnaLocomotora(locomotora2)		
 		assert.equals ( formacion1.velocidadMaxima(), 70 )
 			
 	}
 	
-	test "3) formacion1 no es eficiente ya que su locomotora tienen mas arrastre que peso * 5" {
+	test "3) formacion1 es eficiente ya que locomotora1 tiene mas arrastre que peso*5" {
 		
 		assert.that ( formacion1.esEficiente() )
 		
 	}
 	
-	test "3) agrego locomotora2 a la formacion1 y sigue siendo eficiente ya que sus locomotoras tienen mas arrastre que peso * 5" {
+	test "3) agrego locomotora2 a la formacion1 y sigue siendo eficiente ya que sus locomotoras
+			tienen mas arrastre que peso*5" {
 		
 		formacion1.agregarUnaLocomotora(locomotora2)
 		assert.that ( formacion1.esEficiente() )
@@ -80,7 +101,7 @@ describe "Trenes Test" {
 		
 	}
 	
-	test "5) a la formacion1 le estarian faltando 5280 de empuje para moverse" {
+	test "5) a formacion1 le estarian faltando 5280 de empuje para moverse" {
 		
 		assert.equals ( formacion1.empujeParaMoverse(), -5280 )
 		
@@ -95,26 +116,18 @@ describe "Trenes Test" {
 		
 	test "6) agrego formacion2 a deposito1 y en el conjunto con los vagones mas pesados de deposito1
 			 deben estar vagonPasajeros2 de formacion1 y vagonCarga4 de formacion2" {
-		
-		var vagonCarga3 = new VagonCarga( carga = 2100 )  // Liviano 2260
-		var vagonCarga4 = new VagonCarga( carga = 8000 )  //         8160
-	
-		var vagonPasajeros3 = new VagonPasajeros ( ancho = 2, largo = 2 ) //  8*2*80=1280
-		var vagonPasajeros4 = new VagonPasajeros ( ancho = 3, largo = 4 ) //  10*4*80=3200
-	
-		var locomotora3 = new Locomotora ( peso = 1500, arrastre = 15000, velocidad = 80 )	// 14000
-		
-		var formacion2 = new Formacion( 
-			locomotoras = [locomotora3],
-			vagones = [vagonCarga3,vagonCarga4,vagonPasajeros3,vagonPasajeros4]
-		)
 
+		formacion2.agregarUnVagon(vagonCarga4)
+		formacion2.agregarUnVagon(vagonPasajeros3)
+		formacion2.agregarUnVagon(vagonPasajeros4)
 		deposito1.agregarFormacion(formacion2)
+		
 		assert.equals ( deposito1.vagonesMasPesados(), #{vagonPasajeros2,vagonCarga4} )
 		
 	}
 	
-	test "7) formacion1 es compleja por lo que deposito1 requiere un conductor experimentado" {
+	test "7) formacion1 es compleja porque el peso de los vagones es mayou a 10000kg
+			por lo que deposito1 requiere un conductor experimentado" {
 		
 		assert.that ( deposito1.necesitaConductorExperimentado() )
 		
@@ -122,31 +135,14 @@ describe "Trenes Test" {
 
 	test "7) formacion2 no es compleja por lo que deposito2 no requiere un conductor experimentado" {
 		
-		var vagonCarga3 = new VagonCarga( carga = 2100 )  // Liviano 2260
-		
-		var locomotora3 = new Locomotora ( peso = 1500, arrastre = 15000, velocidad = 80 )	// 14000
-		
-		var formacion2 = new Formacion( 
-			locomotoras = [locomotora3],
-			vagones = [vagonCarga3]
-		)
-		
 		var deposito2 = new Deposito( formaciones = [formacion2] )
 					
 		assert.notThat ( deposito2.necesitaConductorExperimentado() )
 		
 	}
 
-	test "7) formacion2 es compleja por lo que deposito2 requiere un conductor experimentado" {
-		
-		var vagonCarga3 = new VagonCarga( carga = 100 )  // Liviano 260
-		
-		var locomotora3 = new Locomotora ( peso = 1500, arrastre = 15000, velocidad = 80 )	// 14000
-		
-		var formacion2 = new Formacion( 
-			locomotoras = [locomotora3],
-			vagones = [vagonCarga3]
-		)
+	test "7) formacion2 es compleja porque tiene mas de 20 unidades
+			por lo que deposito2 requiere un conductor experimentado" {
 		
 		var deposito2 = new Deposito( formaciones = [formacion2] )
 		
@@ -156,7 +152,7 @@ describe "Trenes Test" {
 		
 	}
 	
-	test "8) formacion1 no puede moverse  y no hay otra locomotora en el deposito" {
+	test "8) formacion1 no puede moverse y no hay otra locomotora en el deposito" {
 		
 		deposito1.agregarLocomotoraSiNoPuedeMoverse(formacion1)
 		
@@ -164,12 +160,118 @@ describe "Trenes Test" {
 		
 	}
 	
-	test "8) formacion1 no puede moverse por lo que se le agrega locomotora2 cuyo arrastre util es mayo que el empuje necesario" {
+	test "8) formacion1 no puede moverse y en deposito2 esta locomotora2 cuyo arrastre util
+			es mayor que el empuje faltante, por lo que se agrega a formacion1" {
 		
 		deposito1.agregarLocomotora( locomotora2 )
 		deposito1.agregarLocomotoraSiNoPuedeMoverse(formacion1)
 		
 		assert.that( formacion1.puedeMoverse() )
+		
+	}
+	
+	// TEST DE LA 2da PARTE
+
+	test "9) formacion1 es de corta distancia y no esta bien armada pues no puede moverse y es compleja" {
+		
+		assert.notThat ( formacion1.estaBienArmada() )
+		
+	}
+
+	test "9) formacion1 es de corta distancia y no esta bien armada pues agregando locomotora2
+			puede moverse pero es compleja" {
+		
+		formacion1.agregarUnaLocomotora(locomotora2)
+	
+		assert.notThat ( formacion1.estaBienArmada() )
+		
+	}	
+
+	test "9) formacion2 es de corta distancia y esta bien armada pues puede moverse y no es compleja" {
+		
+		assert.that ( formacion2.estaBienArmada() )
+		
+	}	
+	
+	test "9) formacion 3 es de larga distancia y esta bien armada pues
+			puede moverse y lleva solo vagones de carga" {
+		
+		assert.that ( formacion3.estaBienArmada() )
+		
+	}
+
+	test "9) formacion 3 es de larga distancia y no esta bien armada pues
+			vagon de pasajeros 4 no tiene suficientes banios" {
+		
+		formacion3.agregarUnVagon(vagonPasajeros4)
+		
+		assert.notThat ( formacion3.estaBienArmada() )
+		
+	}
+	
+	test "10) formacion1 es de corta distantica y el limite de velocidad es de 60km/h
+			aun cuando la velocidad maxima de locomotora1 es de 70km/h" {
+			
+		assert.equals ( formacion1.velocidadLimite(), 60)
+
+	}
+	
+	test "10) formacion 4 es de larga distancia y no une ciudades grandes por lo que su velocidad
+			limite es de 150km/h aunque la vel. maxima de locomotora4 es de 180km/h" {
+		
+		
+		assert.equals ( formacion4.velocidadLimite(), 150)
+		
+	}
+
+	test "10) formacion 4 es de larga distancia y une ciudades grandes por lo que su velocidad
+			limite es de 200km/h pero la vel. maxima de locomotora4 es de 180km/h" {
+		
+		formacion4.unirCiudadesGrandes()
+		
+		assert.equals ( formacion4.velocidadLimite(), 180)
+		
+	}
+
+	test "11) formacion 5 es de alta velocidad y no esta bien armada porque locomotora4 no llega a 250km/h" {
+
+		var formacion5 = new FormacionAltaVelocidad ( 
+			locomotoras = [locomotora4],
+			vagones = [vagonCarga1,vagonCarga3,vagonPasajeros3],
+			uneCiudadesGrandes = true			
+		)
+		
+		assert.notThat ( formacion5.estaBienArmada())
+		
+	}
+	
+	test "11) formacion 5 es de alta velocidad y no esta bien armada porque si bien locomotora5 excede los 250km/h
+			vagonPasajeros1 no es liviano" {
+		
+		var locomotora5 = new Locomotora ( peso = 2000, arrastre = 22000, velocidad = 300 )	// 20000
+		var formacion5 = new FormacionAltaVelocidad ( 
+			locomotoras = [locomotora5],
+			vagones = [vagonCarga1,vagonCarga3,vagonPasajeros3],
+			uneCiudadesGrandes = true
+		)
+		
+		formacion5.agregarUnVagon(vagonPasajeros1)
+			
+		assert.notThat ( formacion5.estaBienArmada())
+		
+	}
+
+	test "11) formacion 5 es de alta velocidad y esta bien armada porque locomotora5 excede los 250km/h
+			y todos sus vagones son livianos liviano" {
+		
+		var locomotora5 = new Locomotora ( peso = 2000, arrastre = 22000, velocidad = 300 )	// 20000
+		var formacion5 = new FormacionAltaVelocidad ( 
+			locomotoras = [locomotora5],
+			vagones = [vagonCarga1,vagonCarga3,vagonPasajeros3],
+			uneCiudadesGrandes = true
+		)
+			
+		assert.that ( formacion5.estaBienArmada())
 		
 	}
 	
